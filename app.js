@@ -11,6 +11,7 @@ var usersRouter = require('./routes/users');
 var dishRouter  = require('./routes/dishRouter')
 var promRouter  = require('./routes/promoRouter')
 
+
 const mongoose = require('mongoose')
 const Dishes = require('./models/dishes')
 
@@ -42,37 +43,37 @@ app.use(session({
   store:new fileStore()
 }))
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter); 
 
 function auth(req , res , next){
     console.log(req.session);
     if(!req.session.user){ //!req.signedCookies.user for cookies
-      var authHeader = req.headers.authorization;
-    if(!authHeader){
+    
       var err= new Error("You are not authenticated!!")
 
       res.setHeader('WWW_Authenticate' , 'Basic')
       err.status = 401;
-      next(err)
+     return  next(err)
     }
 
-    var  auth = new Buffer.from(authHeader.split(' ')[1] , 'base64').toString().split(':');
+    // var  auth = new Buffer.from(authHeader.split(' ')[1] , 'base64').toString().split(':');
 
-    var username = auth[0];
-    var password = auth[1];
+    // var username = auth[0];
+    // var password = auth[1];
 
-    if(username==='admin' && password==='password'){
-      // for cookie res.cookie('user','admin',{signed:true})
-      req.session.user='admin'
-      next();
-    }
-    else{
-      var err= new Error("You are not authenticated!!")
+    // if(username==='admin' && password==='password'){
+    //   // for cookie res.cookie('user','admin',{signed:true})
+    //   req.session.user='admin'
+    //   next();
+    // }
+    // else{
+    //   var err= new Error("You are not authenticated!!")
 
-      res.setHeader('WWW_Authenticate' , 'Basic')
-      err.status = 401;
-      next(err)
-    }
-    }
+    //   res.setHeader('WWW_Authenticate' , 'Basic')
+    //   err.status = 401;
+    //   next(err)
+    // }
     else{
       if(req.session.user=='admin'){ //!req.signedCookies.user for cookies
         console.log("req session:",req.session);
@@ -80,7 +81,7 @@ function auth(req , res , next){
       }
       else{
       var err= new Error("You are not authenticated!!")
-      err.status = 401;
+      err.status = 403;
       next(err)
       }
     }
@@ -91,8 +92,7 @@ app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/dishes',dishRouter );
 app.use('/promotions', promRouter);
 
