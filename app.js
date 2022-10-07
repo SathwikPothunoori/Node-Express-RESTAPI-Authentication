@@ -5,11 +5,15 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var fileStore = require('session-file-store')(session);
+var passport = require('passport')
+var authenticate = require('./authenticate')
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter  = require('./routes/dishRouter')
 var promRouter  = require('./routes/promoRouter')
+var leadRouter  = require('./routes/leaderRouter')
 
 
 const mongoose = require('mongoose')
@@ -42,21 +46,33 @@ app.use(session({
   resave:false,
   store:new fileStore()
 }))
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter); 
 
 function auth(req , res , next){
     console.log(req.session);
-    if(!req.session.user){ //!req.signedCookies.user for cookies
+    if(!req.user){ //!req.signedCookies.user for cookies , !req.session.user for session
     
       var err= new Error("You are not authenticated!!")
 
-      res.setHeader('WWW_Authenticate' , 'Basic')
-      err.status = 401;
+    //  res.setHeader('WWW_Authenticate' , 'Basic')
+      err.status = 403;
      return  next(err)
     }
-
+    else{
+      next()
+      // if(req.session.user=='authenticated'){ //!req.signedCookies.user for cookies
+      //   next()
+      // }
+      // else{
+      // var err= new Error("You are not authenticated!!")
+      // err.status = 403;
+      // return  next(err)
+      // }
+    }
     // var  auth = new Buffer.from(authHeader.split(' ')[1] , 'base64').toString().split(':');
 
     // var username = auth[0];
@@ -74,17 +90,6 @@ function auth(req , res , next){
     //   err.status = 401;
     //   next(err)
     // }
-    else{
-      if(req.session.user=='admin'){ //!req.signedCookies.user for cookies
-        console.log("req session:",req.session);
-        next()
-      }
-      else{
-      var err= new Error("You are not authenticated!!")
-      err.status = 403;
-      next(err)
-      }
-    }
     
 }
 
